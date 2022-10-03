@@ -1,0 +1,35 @@
+import requests
+import json
+from config import keys
+
+
+class APIException(Exception):
+    pass
+
+
+class CurrencyConverter:
+    @staticmethod
+    def convert(purchase: str, sale: str, amount: str):
+
+        if purchase == sale:
+            raise APIException(f'Невозможно выполнить операцию с одной валютой {sale}.')
+
+        try:
+            purchase_ticker = keys[purchase]
+        except KeyError:
+            raise APIException(f'Не удалось обработать валюту {purchase}')
+
+        try:
+            sale_ticker = keys[sale]
+        except KeyError:
+            raise APIException(f'Не удалось обработать валюту {sale}')
+
+        try:
+            amount = float(amount)
+        except ValueError:
+            raise APIException(f'Не удалось обработать количество {amount}')
+
+        r = requests.get(f'https://min-api.cryptocompare.com/data/price?fsym={keys[purchase]}&tsyms={keys[sale]}')
+        total_sale = json.loads(r.content)[keys[sale]]
+
+        return total_sale * amount
